@@ -1,0 +1,33 @@
+digraph G {
+  rankdir=TB; nodesep=0.4; ranksep=0.35;
+  node [shape=box, style="rounded,filled", fillcolor="#ffffff", color="#1d1d1f", fontname="Helvetica", fontsize=11];
+  edge [fontname="Helvetica", fontsize=9, color="#555555"];
+  start [label="User opens app\n(localhost:8000)", shape=oval, fillcolor="#f4e1d2"];
+  logged [label="Already logged in?\n(id_token in session)", shape=diamond, fillcolor="#fff6e5"];
+  click [label="User clicks 'Login with Cognito'"];
+  login [label="/login/  (Django)\nCreate random 'state', save in session\nRedirect to Cognito /oauth2/authorize"];
+  hosted [label="Cognito Hosted UI\nUser signs up / signs in\n(password goes only to Cognito)", fillcolor="#e3eefc"];
+  cb [label="Cognito redirects to /callback/?code=...&state=..."];
+  st [label="state matches?", shape=diamond, fillcolor="#fff6e5"];
+  err [label="Show error\n(400 Bad Request)", fillcolor="#fde2e2"];
+  tok [label="Django POSTs code + client secret\nto Cognito /oauth2/token"];
+  got [label="Cognito returns ID token,\naccess token, refresh token (JWTs)", fillcolor="#e3eefc"];
+  save [label="Save tokens in Django session"];
+  verify [label="/welcome/: verify ID token\n(signature via JWKS, expiry,\nissuer, audience)"];
+  valid [label="Token valid?", shape=diamond, fillcolor="#fff6e5"];
+  wel [label="Show Welcome page\n(name, email, token claims)", fillcolor="#dff3e4"];
+  out [label="User clicks Logout"];
+  lo [label="/logout/: clear Django session\nRedirect to Cognito /logout"];
+  end [label="Cognito ends its session,\nredirects back to Home", shape=oval, fillcolor="#f4e1d2"];
+
+  start -> logged;
+  logged -> verify [label=" yes"];
+  logged -> click [label=" no"];
+  click -> login -> hosted -> cb -> st;
+  st -> err [label=" no"];
+  st -> tok [label=" yes"];
+  tok -> got -> save -> verify -> valid;
+  valid -> wel [label=" yes"];
+  valid -> start [label=" no: clear session,\n back to Home"];
+  wel -> out -> lo -> end;
+}

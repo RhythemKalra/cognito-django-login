@@ -1,0 +1,27 @@
+digraph A {
+  rankdir=LR; nodesep=0.6; ranksep=1.0;
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11, color="#1d1d1f"];
+  edge [fontname="Helvetica", fontsize=9, color="#555555"];
+  browser [label="User's Browser", fillcolor="#f4e1d2"];
+  subgraph cluster_d { label="Django App (localhost:8000)"; fontname="Helvetica"; style="rounded"; color="#999999";
+    views [label="Views\n/  /login/  /callback/\n/welcome/  /logout/", fillcolor="#ffffff"];
+    jwtu [label="jwt_utils.py\n(verify ID token)", fillcolor="#ffffff"];
+    sess [label="Session store\n(SQLite)", fillcolor="#ffffff"];
+    env [label=".env\n(client id/secret,\nnot in GitHub)", fillcolor="#fff6e5"];
+  }
+  subgraph cluster_a { label="AWS Cognito (free tier)"; fontname="Helvetica"; style="rounded"; color="#999999";
+    ui [label="Hosted UI\n(login page)", fillcolor="#e3eefc"];
+    api [label="/oauth2/token\n/logout", fillcolor="#e3eefc"];
+    pool [label="User Pool\n+ App Client", fillcolor="#e3eefc"];
+    jwks [label="JWKS\n(public keys)", fillcolor="#e3eefc"];
+  }
+  browser -> views [label="1. HTTP requests"];
+  views -> browser [label="2. redirect to Hosted UI"];
+  browser -> ui [label="3. sign in"];
+  ui -> pool [style=dashed];
+  ui -> browser [label="4. redirect with code"];
+  views -> api [label="5. code -> tokens"];
+  views -> sess [label="6. store tokens"];
+  jwtu -> jwks [label="7. fetch keys (cached)"];
+  views -> jwtu; env -> views [style=dotted];
+}
