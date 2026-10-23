@@ -137,15 +137,22 @@ An **app client** is how a specific application gets permission to use the user 
 
 ### Q2. What is a JWT and what does it contain? (Krati)
 
-A **JWT (JSON Web Token)** is like a sealed ID card that Cognito hands the user after login. It is one long string in three parts separated by dots: `header.payload.signature`.
+A **JWT (JSON Web Token)** is a compact, signed piece of text that proves who someone is. It has three parts separated by dots: `header.payload.signature`. Each part is Base64URL-encoded.
 
-- **Header:** how the token was sealed (`RS256`) and which key was used (`kid`).
-- **Payload:** the actual information, called claims. Ours has `sub` (the user's unique ID), `email`, `name`, `iss` (which user pool issued it), `aud` (which app it was made for), `token_use`, `iat` (when it was issued) and `exp` (when it expires).
-- **Signature:** the seal. Cognito creates it with a private key that only Cognito has, and we check it using Cognito's public key from its JWKS address.
+- **Header:** the algorithm used to sign it (`RS256`) and the key ID (`kid`) that tells us which of Cognito's public keys to use.
+- **Payload (claims):** the actual information, for example:
+  - `sub` (the user's unique ID)
+  - `email`, `email_verified`, `name`
+  - `iss` (issuer, our user pool's URL)
+  - `aud` (audience, our app client ID)
+  - `token_use` (`id` or `access`)
+  - `iat` (issued at) and `exp` (expiry time)
+- **Signature:** created by Cognito with its **private key**. We check it with Cognito's **public key**, downloaded from the JWKS URL. If anyone changes even one character of the payload, the signature check fails.
 
-The payload is not secret. Anyone can decode it and read it. What makes a JWT trustworthy is the signature. In our tamper test, changing the email to `hacker@evil.com` made the signature stop matching, so the token was rejected straight away.
-
-Cognito gives three tokens: the **ID token** (who the user is), the **access token** (what the user may access) and the **refresh token** (to get new tokens later without logging in again).
+The payload is only encoded, not encrypted, so anyone can read it. That is why we must **verify** the signature, expiry, issuer and audience before trusting it. Cognito gives three tokens:
+- **ID token:** who the user is.
+- **Access token:** what the user is allowed to access.
+- **Refresh token:** used to get new tokens later without logging in again.
 
 ### Q3. How does the OAuth 2.0 redirect login flow work, step by step? (Bhoomi)
 
