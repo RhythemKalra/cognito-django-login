@@ -149,24 +149,16 @@ Cognito gives three tokens: the **ID token** (who the user is), the **access tok
 
 ### Q3. How does the OAuth 2.0 redirect login flow work, step by step? (Bhoomi)
 
-We use the **Authorization Code grant**:
+OAuth 2.0 is a standard way of letting another service do the login for you. This is exactly what happens in our app:
 
-1. The user clicks **Login** on our app.
-2. Our app redirects the browser to Cognito's `/oauth2/authorize` URL with:
-   - `client_id`
-   - `redirect_uri`
-   - `response_type=code`
-   - `scope=openid email profile`
-   - a random `state` value, which we also save in the session
-3. Cognito shows its **Hosted UI**. The user signs up or signs in there, so the password goes only to Cognito.
-4. Cognito redirects the browser back to our `redirect_uri` (`/callback/`) with a short-lived, one-time **authorization code** and the same `state`.
-5. Our app checks that `state` matches what it saved. This protects against CSRF and fake callbacks.
-6. Our server sends the code, along with the client ID and **client secret**, directly to Cognito's `/oauth2/token` endpoint. This is server-to-server, so the browser never sees the secret or the tokens.
-7. Cognito returns the **ID token, access token and refresh token**.
-8. Our app verifies the ID token, stores the tokens in the session, and shows the Welcome page.
-9. On **logout**, we clear our session and redirect to Cognito's `/logout` endpoint so Cognito's own session ends too. Cognito then redirects back to our home page.
+1. The user clicks Login. Our app sends them to Cognito's login page, along with our client ID, the address to send them back to, the details we want (openid, email, profile) and a random 'state' value that we also save in the session.
+2. The user types their email and password on Cognito's page, so the password never reaches our server.
+3. Cognito sends the user back to our /callback/ page with a one-time code and the same state value.
+4. We check that the state matches the one we saved. If it doesn't, the response could be fake, so we stop there.
+5. Our server sends the code together with our client secret to Cognito, and Cognito replies with the ID, access and refresh tokens.
+6. We check the ID token and show the welcome page.
 
-The code is exchanged instead of sending tokens directly in the URL because URLs can leak through browser history and logs. A code is useless without the client secret, which only our server has.
+We receive a code first instead of the tokens directly because the code passes through the browser, where someone could see it. On its own the code is useless, since it only works together with the client secret, and only our server knows that.
 
 ---
 
