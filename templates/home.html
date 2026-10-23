@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Home · Cognito Login{% endblock %}
+{% block content %}
+  <span class="tag">Django × AWS Cognito</span>
+  <h1>Hello there 👋</h1>
+  {% if logged_in %}
+    <p>You're already logged in.</p>
+    <a class="btn" href="/welcome/">Go to Welcome page</a>
+  {% else %}
+    <p>Log in securely using the AWS Cognito Hosted UI. Your password goes to Cognito, never to this app.</p>
+    <a class="btn" href="/login/">Login with Cognito</a>
+  {% endif %}
+{% endblock %}
