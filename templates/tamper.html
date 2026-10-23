@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Tamper Test · Cognito Login{% endblock %}
+{% block content %}
+  <span class="tag">JWT security test</span>
+  <h1>Can a fake token get in?</h1>
+  <p>We take your real ID token, break it in different ways, and run each one through the same check the Welcome page uses.</p>
+
+  <table>
+    {% for t in tests %}
+      <tr>
+        <td style="width:40%;font-family:inherit;color:#1d1d1f;">
+          <strong>{{ t.label }}</strong><br><span style="color:#777;font-size:12px;">{{ t.explanation }}</span>
+        </td>
+        <td style="color:{% if t.ok %}#1a7f37{% else %}#c0392b{% endif %};font-weight:600;">
+          {% if t.ok %}✅{% else %}❌{% endif %} {{ t.result }}
+        </td>
+      </tr>
+    {% endfor %}
+  </table>
+
+  <a class="btn" href="/welcome/">Back to Welcome</a>
+{% endblock %}

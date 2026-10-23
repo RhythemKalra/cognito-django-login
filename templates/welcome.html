@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Welcome · Cognito Login{% endblock %}
+{% block content %}
+  <span class="tag">Logged in ✓</span>
+  <h1>Welcome, {{ name }}!</h1>
+  <p>You signed in as <strong>{{ email }}</strong>. Your session token expires on {{ expires }}.</p>
+
+  <p style="margin-bottom:8px;font-weight:600;color:#1d1d1f;">What's inside your ID token (JWT):</p>
+  <table>
+    {% for key, value in claims.items %}
+      <tr><td>{{ key }}</td><td>{{ value }}</td></tr>
+    {% endfor %}
+  </table>
+
+  <a class="btn secondary" href="/tamper-test/">Run tamper test</a>
+  <a class="btn" href="/logout/">Logout</a>
+{% endblock %}
