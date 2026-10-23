@@ -1,6 +1,6 @@
 # Cognito Login in a Django App
 
-**Subject:** iMAD (Introduction to Mobile App Development), Group Project
+**Subject:** IMAP · MBA Tech Data Science, Semester 5 · Group Project
 **Topic 1:** A Django app where users log in and log out through an AWS Cognito User Pool (Hosted UI) and land on a welcome page.
 
 ---
@@ -9,10 +9,10 @@
 
 | Member | Role | What they built |
 |---|---|---|
-| **Rhythem Kalra** | Repo owner & AWS setup | GitHub repo, Django project skeleton, settings + `.env` handling, `.gitignore`, base layout + home page, Cognito User Pool + App Client + Hosted UI setup |
-| **Bhoomi** | Login flow | `/login/` (redirect to Hosted UI with `state`) and `/callback/` (state check + code-for-token exchange) in `accounts/views_login.py` |
-| **Krati** | Token verification & Welcome page | `accounts/jwt_utils.py` (verifies JWT signature via JWKS, expiry, issuer, audience), `/welcome/` view and `welcome.html`, plus the **JWT tamper test** page (`views_tamper.py`) |
-| **Kanishka** | Logout & Documentation | `/logout/` (clears session + Cognito logout) in `accounts/views_logout.py`, README, architecture diagram, flowchart, screenshots |
+| **Rhythem Kalra (S023)** | Repo owner & AWS setup | GitHub repo, Django project skeleton, settings + `.env` handling, `.gitignore`, base layout + home page, Cognito User Pool + App Client + Hosted UI setup |
+| **Bhoomi Mehta (S036)** | Login flow | `/login/` (redirect to Hosted UI with `state`) and `/callback/` (state check + code-for-token exchange) in `accounts/views_login.py` |
+| **Krati Maheshwari (S035)** | Token verification & Welcome page | `accounts/jwt_utils.py` (verifies JWT signature via JWKS, expiry, issuer, audience), `/welcome/` view and `welcome.html`, plus the **JWT tamper test** page (`views_tamper.py`) |
+| **Kanishka Anand (S003)** | Logout & Documentation | `/logout/` (clears session + Cognito logout) in `accounts/views_logout.py`, README, architecture diagram, flowchart, screenshots |
 
 ---
 
@@ -82,7 +82,7 @@ cognito-django-login/
 
 ### 1. AWS Cognito (done once by one person, free tier)
 
-1. Log in to the **AWS Console** and set the region (top right) to **Asia Pacific (Mumbai) ap-south-1**.
+1. Log in to the **AWS Console** and set the region (top right) to **Asia Pacific (Sydney) ap-southeast-2** (our free-plan AWS account only allows Sydney).
 2. Search **Cognito** → **Create user pool**.
 3. Application type: **Traditional web application**. Name it `django-cognito-app`.
 4. Sign-in identifiers: **Email**. Required attributes for sign-up: **email** (optionally **name**).
@@ -93,9 +93,9 @@ cognito-django-login/
    - OAuth grant type: **Authorization code grant**
    - Scopes: **openid**, **email**, **profile** → **Save**.
 7. Note down these values:
-   - **User pool ID** (pool overview page, e.g. `ap-south-1_AbC123`)
+   - **User pool ID** (pool overview page, e.g. `ap-southeast-2_AbC123`)
    - **Client ID** and **Client secret** (App client page)
-   - **Domain** (left menu → **Domain**, e.g. `ap-south-1abc123.auth.ap-south-1.amazoncognito.com`)
+   - **Domain** (left menu → **Domain**, e.g. `ap-southeast-2abc123.auth.ap-southeast-2.amazoncognito.com`)
 
 ### 2. Run the app locally
 
@@ -156,16 +156,24 @@ The payload is only encoded, not encrypted, so anyone can read it. That is why w
 
 ### Q3. How does the OAuth 2.0 redirect login flow work, step by step? (Bhoomi)
 
-OAuth 2.0 is a standard way of letting another service do the login for you. This is exactly what happens in our app:
+We use the **Authorization Code grant**:
 
-1. The user clicks Login. Our app sends them to Cognito's login page, along with our client ID, the address to send them back to, the details we want (openid, email, profile) and a random 'state' value that we also save in the session.
-2. The user types their email and password on Cognito's page, so the password never reaches our server.
-3. Cognito sends the user back to our /callback/ page with a one-time code and the same state value.
-4. We check that the state matches the one we saved. If it doesn't, the response could be fake, so we stop there.
-5. Our server sends the code together with our client secret to Cognito, and Cognito replies with the ID, access and refresh tokens.
-6. We check the ID token and show the welcome page.
+1. The user clicks **Login** on our app.
+2. Our app redirects the browser to Cognito's `/oauth2/authorize` URL with:
+   - `client_id`
+   - `redirect_uri`
+   - `response_type=code`
+   - `scope=openid email profile`
+   - a random `state` value, which we also save in the session
+3. Cognito shows its **Hosted UI**. The user signs up or signs in there, so the password goes only to Cognito.
+4. Cognito redirects the browser back to our `redirect_uri` (`/callback/`) with a short-lived, one-time **authorization code** and the same `state`.
+5. Our app checks that `state` matches what it saved. This protects against CSRF and fake callbacks.
+6. Our server sends the code, along with the client ID and **client secret**, directly to Cognito's `/oauth2/token` endpoint. This is server-to-server, so the browser never sees the secret or the tokens.
+7. Cognito returns the **ID token, access token and refresh token**.
+8. Our app verifies the ID token, stores the tokens in the session, and shows the Welcome page.
+9. On **logout**, we clear our session and redirect to Cognito's `/logout` endpoint so Cognito's own session ends too. Cognito then redirects back to our home page.
 
-We receive a code first instead of the tokens directly because the code passes through the browser, where someone could see it. On its own the code is useless, since it only works together with the client secret, and only our server knows that.
+The code is exchanged instead of sending tokens directly in the URL because URLs can leak through browser history and logs. A code is useless without the client secret, which only our server has.
 
 ---
 
