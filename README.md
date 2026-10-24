@@ -131,9 +131,9 @@ Open **http://localhost:8000** (use `localhost`, not `127.0.0.1`, because it mus
 
 ### Q1. What are a user pool and an app client? (Rhythem)
 
-A **user pool** is a user directory that AWS Cognito manages for us. It stores every user who signs up (email, password, verified status, attributes like name) and handles sign-up, sign-in, password reset and email verification. Because of this, our Django app does not need its own users table or password storage.
+Think of a **user pool** as the guest register of our app. It is the list of everyone who is allowed to log in, and AWS looks after it for us: it stores each person's email, name and password (safely, never as plain text), sends the verification code when someone signs up, and handles forgot-password. That is why our Django project has no users table at all.
 
-An **app client** is how a specific application gets permission to use the user pool. One user pool can have many app clients, for example a web app and a mobile app. Each app client has its own **Client ID** (and optionally a **Client Secret**), its allowed callback and sign-out URLs, the OAuth flows it may use, and the scopes it may request. Our Django app is one app client. When it sends a user to the Hosted UI, Cognito checks the client ID and only redirects back to the URLs we whitelisted.
+An **app client** is how one particular app gets permission to use that register. Our Django website is one app client. It has its own **client ID** and **client secret**, and Cognito will only send users back to the addresses we listed for it: `http://localhost:8000/callback/` after login and `http://localhost:8000/` after logout. If we built a mobile app later, it could be a second app client on the same user pool, so the same users could log in to both.
 
 ### Q2. What is a JWT and what does it contain? (Krati)
 
