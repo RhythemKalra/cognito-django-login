@@ -129,13 +129,13 @@ Open **http://localhost:8000** (use `localhost`, not `127.0.0.1`, because it mus
 
 ## Research Questions (in our own words)
 
-### Q1. What are a user pool and an app client? (Rhythem)
+### Q1. What are a user pool and an app client?
 
 Think of a **user pool** as the guest register of our app. It is the list of everyone who is allowed to log in, and AWS looks after it for us: it stores each person's email, name and password (safely, never as plain text), sends the verification code when someone signs up, and handles forgot-password. That is why our Django project has no users table at all.
 
 An **app client** is how one particular app gets permission to use that register. Our Django website is one app client. It has its own **client ID** and **client secret**, and Cognito will only send users back to the addresses we listed for it: `http://localhost:8000/callback/` after login and `http://localhost:8000/` after logout. If we built a mobile app later, it could be a second app client on the same user pool, so the same users could log in to both.
 
-### Q2. What is a JWT and what does it contain? (Krati)
+### Q2. What is a JWT and what does it contain?
 
 A **JWT (JSON Web Token)** is like a sealed ID card that Cognito hands the user after login. It is one long string in three parts separated by dots: `header.payload.signature`.
 
@@ -147,7 +147,7 @@ The payload is not secret. Anyone can decode it and read it. What makes a JWT tr
 
 Cognito gives three tokens: the **ID token** (who the user is), the **access token** (what the user may access) and the **refresh token** (to get new tokens later without logging in again).
 
-### Q3. How does the OAuth 2.0 redirect login flow work, step by step? (Bhoomi)
+### Q3. How does the OAuth 2.0 redirect login flow work, step by step? 
 
 OAuth 2.0 is a standard way of letting another service do the login for you. This is exactly what happens in our app:
 
